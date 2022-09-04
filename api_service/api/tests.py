@@ -16,15 +16,14 @@ class TestStockClient(TestCase):
         test_client = StockClient()
         self.assertRaises(ValueError, test_client.get, stock_code=stock_code)
 
-    # def test_user_model_login(self):
-    #     pass
 
-# class TestSignUser(APITestCase):
-#     def test_signup_user(self):
-#         pass
+class TestSignUser(APITestCase):
+    def test_signup_user(self):
+        pass
+        
     
-#     def test_signin_user(self):
-#         pass
+    def test_signin_user(self):
+        pass
 
-#     def test_get_stock(self):
-#         pass
+    def test_get_stock(self):
+        pass

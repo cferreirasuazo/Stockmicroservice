@@ -10,4 +10,6 @@ urlpatterns = [
     path('history', api_views.HistoryView.as_view()),
     path('stats', api_views.StatsView.as_view()),
     path('admin', admin.site.urls),
+    path("signup", api_views.UserSignInAPIView.as_view()),
+    path('signin', api_views.UserSignupAPIView.as_view())
 ]
