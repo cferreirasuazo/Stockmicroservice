@@ -13,6 +13,8 @@ from .models import UserRequestHistory
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 import datetime
+from django.db.models import Count
+
 
 class UserSignupAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -51,7 +53,7 @@ class StockView(APIView):
         date_format = '%Y-%m-%d %H:%M:%S'
         user_id = self.request.user.id
         stock_client_response = {
-            "symbol": "ACAX.US",
+            "symbol": "ra.us",
             "date": "2022-09-02",
             "time": "15:45:01",
             "open": "9.94",
@@ -59,7 +61,7 @@ class StockView(APIView):
             "low": "9.94",
             "close": "9.94",
             "volume": "155",
-            "name": "ALSET CAPITAL ACQUISITION"
+            "name": "RAUL"
         }
         datetime_str = stock_client_response.get("date") + " " + stock_client_response.get("time")
         dt_object = datetime.datetime.strptime(datetime_str, date_format)
@@ -100,9 +102,17 @@ class StatsView(APIView):
     """
     # TODO: Implement the query needed to get the top-5 stocks as described in the README, and return
     # the results to the user.
-
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
+        counts = UserRequestHistory.objects.values('symbol').annotate(requested = Count('symbol')).order_by('-requested')
+        stats = [ 
+            { 
+                "stock": count["symbol"], 
+                "times_requested": count["requested"] 
+            } for count in counts[:5] ]
+        
         if not self.request.user.is_staff:
-            return Response(status=406)
+            return Response(stats, status=406)
 
-        return Response(status=200)
+        return Response(stats,status=200)

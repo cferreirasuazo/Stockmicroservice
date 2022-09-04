@@ -17,13 +17,17 @@ class TestStockClient(TestCase):
         self.assertRaises(ValueError, test_client.get, stock_code=stock_code)
 
 
-class TestSignUser(APITestCase):
+class TestUser(APITestCase):
     def test_signup_user(self):
         pass
         
-    
     def test_signin_user(self):
         pass
 
-    def test_get_stock(self):
+    def test_stock(self):
         pass
+
+    def test_history(self):
+        pass
+
+    
