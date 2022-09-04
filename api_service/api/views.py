@@ -9,11 +9,16 @@ from api.serializers import UserRequestHistorySerializer
 from django.contrib.auth.models import User
 from .serializers import SignUpSerializer, UserSerializer, SignInSerializer
 from .auth.token_manager import TokenManager
+from .models import UserRequestHistory
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+import datetime
 
 class UserSignupAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = SignInSerializer
     permission_classes = [AllowAny]
+
 
 class UserSignInAPIView(generics.GenericAPIView):
     queryset = User.objects.all()
@@ -39,20 +44,54 @@ class StockView(APIView):
     """
     Endpoint to allow users to query stocks
     """
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
+        date_format = '%Y-%m-%d %H:%M:%S'
+        user_id = self.request.user.id
+        stock_client_response = {
+            "symbol": "ACAX.US",
+            "date": "2022-09-02",
+            "time": "15:45:01",
+            "open": "9.94",
+            "high": "9.94",
+            "low": "9.94",
+            "close": "9.94",
+            "volume": "155",
+            "name": "ALSET CAPITAL ACQUISITION"
+        }
+        datetime_str = stock_client_response.get("date") + " " + stock_client_response.get("time")
+        dt_object = datetime.datetime.strptime(datetime_str, date_format)
+        data = {
+            "symbol": stock_client_response.get("symbol"),
+            "date":   dt_object,
+            "open":   stock_client_response.get("open"),
+            "high":   stock_client_response.get("high"),
+            "low":    stock_client_response.get("low"),
+            "close":  stock_client_response.get("close"),
+            "name":   stock_client_response.get("name"),
+            "user_id" : user_id
+        }
+        
         stock_code = request.query_params.get('q')
-        # TODO: Call the stock service, save the response, and return the response to the user
-        return Response()
+        stock = UserRequestHistory.objects.create(**data)
+        serializer = UserRequestHistorySerializer(stock)
+        return Response(serializer.data,status=200)
 
 
 class HistoryView(generics.ListAPIView):
     """
     Returns queries made by current user.
     """
-    queryset = UserRequestHistory.objects.all()
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = UserRequestHistorySerializer
-    # TODO: Filter the queryset so that we get the records for the user making the request.
+
+    def get_queryset(self, *args, **kwargs):
+        username = self.request.user.username
+        queryset = UserRequestHistory.objects.filter(user__username=username)
+        return queryset
 
 
 class StatsView(APIView):
@@ -63,4 +102,7 @@ class StatsView(APIView):
     # the results to the user.
 
     def get(self, request, *args, **kwargs):
-        return Response()
+        if not self.request.user.is_staff:
+            return Response(status=406)
+
+        return Response(status=200)
