@@ -79,8 +79,19 @@ The following features are optional to implement, but if you do, you'll be ranke
 ## How to run the project
 * Create a virtualenv: `python -m venv virtualenv` and activate it `. virtualenv/bin/activate`.
 * Install dependencies: `pip install -r requirements.txt`
-* Start the api service: `cd api_service ; ./manage.py runserver`
-* Start the stock service: `cd stock_service ; ./manage.py runserver`
+* Start the api service: `cd api_service ; ./manage.py runserver 8001`
+* Start the stock service: `cd stock_service ; ./manage.py runserver 8000`
+* Start the api service: `cd api_service ; ./manage.py migrate`
+* Start the stock service: `cd stock_service ; ./manage.py migrate`
 
-__Important:__ If your implementation requires different steps to start the services
-(like starting a rabbitMQ consumer), document them here!
+
+# Run tests
+
+In order to run tests in api, most have stock service running for get stocks
+
+* Run tests in api service  `python manage.py test`
+* Run tests in stock service  `python manage.py test`
+
+
+
+

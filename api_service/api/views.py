@@ -63,10 +63,13 @@ class StockView(APIView):
             return Response({"message": "Something Failed Successfully"},status=500)
 
         stock_client_response["user_id"] = user_id
+        stock_client_response["date"] = datetime.datetime.now()
 
         stock = UserRequestHistory.objects.create(**stock_client_response)
         serializer = UserRequestHistorySerializer(stock)
-        return Response(serializer.data, status=200)
+        data_serialized = serializer.data
+        del data_serialized["date"] 
+        return Response(data_serialized, status=200)
 
 
 class HistoryView(generics.ListAPIView):
@@ -79,7 +82,7 @@ class HistoryView(generics.ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         username = self.request.user.username
-        queryset = UserRequestHistory.objects.filter(user__username=username)
+        queryset = UserRequestHistory.objects.filter(user__username=username).order_by("-date")
         return queryset
 
 
