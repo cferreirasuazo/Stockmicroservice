@@ -132,5 +132,26 @@ class TestUser(APITestCase):
         history_response = self.client.get(url_history)
         self.assertEqual(history_response.status_code, 200)
 
-#     def test_stats(self):
-#         url = reverse("stats")
+    @skipIf(is_stock_service_down, is_skipif_message)
+    def test_stats(self):
+        url_stats = reverse("stats")
+        url_signin = reverse("signin-user")
+        url_stock = reverse("stock") + '?q={stock_code}'
+        stock_codes = ["ACEVW.US", "ACEVW.US", "ACEVW.US", 'HYMCL.US', 'DUK_A.US',
+                       'DUK_A.US', 'HYMCL.US', 'HYMCL.US', 'NFLX.US', 'LZB.US', 'LZB.US',
+                       'NFLX.US', 'DUK_A.US', 'DUK_A.US', 'HYMCL.US', 'NFLX.US',
+                       'ACER.US', 'ACER.US', 'ACER.US', 'DUK_A.US', 'LZB.US', 'LZB.US',
+                       'NFLX.US', 'HYMCL.US', 'HYMCL.US', 'HYMCL.US', 'HYMCL.US', 'LZB.US',
+                       'LZB.US', 'LZB.US', 'NFLX.US', 'NFLX.US', 'LZB.US', 'LZB.US', 'NFLX.US']
+        signup = self.client.post(url_signin, self.new_super_user, format='json')
+        signup_response = json.loads(signup.content)
+        is_authenticated = self.client.login(username=self.new_super_user.get(
+            "username"), password=self.new_super_user.get("password"))
+
+        for stock_code in stock_codes:
+            url_stock = reverse("stock") + '?q={stock_code}'
+            url = url_stock.replace("{stock_code}", stock_code)
+            self.client.get(url)
+
+        stats_response = self.client.get(url_stats)
+        self.assertEqual(stats_response.status_code, 200)
