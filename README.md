@@ -83,6 +83,12 @@ The following features are optional to implement, but if you do, you'll be ranke
 * Start the stock service: `cd stock_service ; ./manage.py runserver 8000`
 * Start the api service: `cd api_service ; ./manage.py migrate`
 * Start the stock service: `cd stock_service ; ./manage.py migrate`
+
+
+# Run tests
+
+In order to run tests in api, most have stock service running for get stocks
+
 * Run tests in api service  `python manage.py test`
 * Run tests in stock service  `python manage.py test`
 

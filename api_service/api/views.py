@@ -67,7 +67,9 @@ class StockView(APIView):
 
         stock = UserRequestHistory.objects.create(**stock_client_response)
         serializer = UserRequestHistorySerializer(stock)
-        return Response(serializer.data, status=200)
+        data_serialized = serializer.data
+        del data_serialized["date"] 
+        return Response(data_serialized, status=200)
 
 
 class HistoryView(generics.ListAPIView):
