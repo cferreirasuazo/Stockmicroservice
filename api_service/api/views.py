@@ -63,6 +63,7 @@ class StockView(APIView):
             return Response({"message": "Something Failed Successfully"},status=500)
 
         stock_client_response["user_id"] = user_id
+        stock_client_response["date"] = datetime.datetime.now()
 
         stock = UserRequestHistory.objects.create(**stock_client_response)
         serializer = UserRequestHistorySerializer(stock)

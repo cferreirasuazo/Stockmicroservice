@@ -22,7 +22,6 @@ class Stock():
     def to_dict(self):
         return {
             "symbol": self.symbol,
-            "date": datetime.datetime.now(),
             "open": self.open,
             "high": self.high,
             "low": self.low,
