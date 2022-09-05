@@ -1,9 +1,10 @@
 import requests
 import csv
 from contextlib import closing
+from .entities.Stock import Stock
 
+# TODO formatear data aqui
 
-#TODO formatear data aqui
 
 class StooqClient():
     def __init__(self):
@@ -24,20 +25,38 @@ class StooqClient():
         stock_url = self.stooq_url.replace("{stock_code}", stock_code)
         return stock_url
 
-    def get_stock(self, stock_code):
-        url = self.get_stock_url(stock_code)
+    def get_stock_from_csv(self, url):
         response = []
-        stock = {}
         with closing(requests.get(url, stream=True)) as r:
             f = (line.decode('utf-8') for line in r.iter_lines())
             reader = csv.reader(f, delimiter=',', quotechar='"')
             for row in reader:
                 response.append(row)
-            values = response[1]
-            
-            if 'N/D' in values:
-                raise ValueError(f'Invalide Stock Code {stock_code}')
 
-            for x, z in enumerate(values):
-                stock[self.stock_keys[x].lower()] = z
+        return response[1]
+
+    def format_stock(self, values):
+        stock_values = {}
+        for x, z in enumerate(values):
+            stock_values[self.stock_keys[x].lower()] = z
+
+        stock = Stock(symbol=stock_values.get("symbol"),
+                      date=stock_values.get("date"),
+                      time=stock_values.get("time"),
+                      open=stock_values.get("open"),
+                      high=stock_values.get("high"),
+                      low=stock_values.get("low"),
+                      close=stock_values.get("close"),
+                      volume=stock_values.get("volume"),
+                      name=stock_values.get("name"))
+
+        return stock.to_dict()
+
+    def get_stock(self, stock_code):
+        url = self.get_stock_url(stock_code)
+        values = self.get_stock_from_csv(url)
+        if 'N/D' in values:
+            raise ValueError(f'Invalide Stock Code: {stock_code}')
+
+        stock = self.format_stock(values)
         return stock

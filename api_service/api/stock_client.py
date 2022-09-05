@@ -9,6 +9,6 @@ class StockClient():
         response = requests.get(url)
 
         if response.status_code == 500:
-            raise ValueError("Invalid Stock Code")
+            raise ValueError(f"Invalid Stock Code: {stock_code}")
         return response.json()
         

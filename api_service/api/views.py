@@ -43,6 +43,7 @@ class UserSignInAPIView(generics.GenericAPIView):
 
             return Response(user_data)
 
+
 class StockView(APIView):
     """
     Endpoint to allow users to query stocks
@@ -53,29 +54,19 @@ class StockView(APIView):
     def get(self, request, *args, **kwargs):
         stock_code = request.query_params.get('q')
         stock_client = StockClient()
-        date_format = '%Y-%m-%d %H:%M:%S'
         user_id = self.request.user.id
         try:
             stock_client_response = stock_client.get(stock_code)
         except ValueError:
-            return Response({"message":"Invalid Stock Code"}, status=406)
-            
-        datetime_str = stock_client_response.get("date") + " " + stock_client_response.get("time")
-        dt_object = datetime.datetime.strptime(datetime_str, date_format)
-        data = {
-            "symbol": stock_client_response.get("symbol"),
-            "date":   dt_object,
-            "open":   stock_client_response.get("open"),
-            "high":   stock_client_response.get("high"),
-            "low":    stock_client_response.get("low"),
-            "close":  stock_client_response.get("close"),
-            "name":   stock_client_response.get("name"),
-            "user_id" : user_id
-        }
-        
-        stock = UserRequestHistory.objects.create(**data)
+            return Response({"message": "Invalid Stock Code"}, status=406)
+        except Exception:
+            return Response({"message": "Something Failed Successfully"},status=500)
+
+        stock_client_response["user_id"] = user_id
+
+        stock = UserRequestHistory.objects.create(**stock_client_response)
         serializer = UserRequestHistorySerializer(stock)
-        return Response(serializer.data,status=200)
+        return Response(serializer.data, status=200)
 
 
 class HistoryView(generics.ListAPIView):
@@ -100,14 +91,9 @@ class StatsView(APIView):
     # the results to the user.
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
-        if not self.request.user.is_staff:
+        if not self.request.user.is_superuser:
             return Response({"message": "Not Valid User"}, status=403)
-        counts = UserRequestHistory.objects.values('symbol').annotate(requested = Count('symbol')).order_by('-requested')
-        stats = [ 
-            { 
-                "stock": count["symbol"], 
-                "times_requested": count["requested"] 
-            } for count in counts[:5] ]
-    
-        return Response(stats,status=200)
+        stats = UserRequestHistory.objects.get_top_stocks(5)
+        return Response(stats, status=200)

@@ -13,7 +13,7 @@ class StockView(APIView):
             stock = stooq_client.get_stock(stock_code)
         except:
             error_message = {
-                "message": "invalid stock code"
+                "message": f"invalid stock code: {stock_code}"
             }
             return Response(error_message,status=500)
         return Response(stock,status=200)
