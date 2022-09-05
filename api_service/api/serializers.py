@@ -69,7 +69,6 @@ class SignInSerializer(serializers.ModelSerializer):
         """
         :param dict validated_data: Validated serializer data.
         """
-        print(validated_data)
         email = validated_data.pop('email')
         password = validated_data.pop('password')
 

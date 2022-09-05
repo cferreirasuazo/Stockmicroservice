@@ -72,12 +72,8 @@ WSGI_APPLICATION = 'api_service.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_NAME'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': 'db',
-        'PORT': 5432,
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -127,4 +123,5 @@ REST_FRAMEWORK = {
 }
 
 
-STOCK_SERVICE_URL = os.environ.get("STOCK_SERVICE_URL")
+STOCK_SERVICE_URL = 'http://127.0.0.1:8001'
+

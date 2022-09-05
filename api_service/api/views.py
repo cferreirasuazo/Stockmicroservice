@@ -14,6 +14,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated
 import datetime
 from django.db.models import Count
+from .stock_client import StockClient
 
 
 class UserSignupAPIView(generics.CreateAPIView):
@@ -50,19 +51,15 @@ class StockView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
+        stock_code = request.query_params.get('q')
+        stock_client = StockClient()
         date_format = '%Y-%m-%d %H:%M:%S'
         user_id = self.request.user.id
-        stock_client_response = {
-            "symbol": "ra.us",
-            "date": "2022-09-02",
-            "time": "15:45:01",
-            "open": "9.94",
-            "high": "9.94",
-            "low": "9.94",
-            "close": "9.94",
-            "volume": "155",
-            "name": "RAUL"
-        }
+        try:
+            stock_client_response = stock_client.get(stock_code)
+        except ValueError:
+            return Response({"message":"Invalid Stock Code"}, status=406)
+            
         datetime_str = stock_client_response.get("date") + " " + stock_client_response.get("time")
         dt_object = datetime.datetime.strptime(datetime_str, date_format)
         data = {
@@ -76,7 +73,6 @@ class StockView(APIView):
             "user_id" : user_id
         }
         
-        stock_code = request.query_params.get('q')
         stock = UserRequestHistory.objects.create(**data)
         serializer = UserRequestHistorySerializer(stock)
         return Response(serializer.data,status=200)
@@ -105,14 +101,13 @@ class StatsView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
+        if not self.request.user.is_staff:
+            return Response({"message": "Not Valid User"}, status=403)
         counts = UserRequestHistory.objects.values('symbol').annotate(requested = Count('symbol')).order_by('-requested')
         stats = [ 
             { 
                 "stock": count["symbol"], 
                 "times_requested": count["requested"] 
             } for count in counts[:5] ]
-        
-        if not self.request.user.is_staff:
-            return Response(stats, status=406)
-
+    
         return Response(stats,status=200)
