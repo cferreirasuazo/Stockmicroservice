@@ -79,7 +79,7 @@ class HistoryView(generics.ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         username = self.request.user.username
-        queryset = UserRequestHistory.objects.filter(user__username=username)
+        queryset = UserRequestHistory.objects.filter(user__username=username).order_by("-date")
         return queryset
 
 
